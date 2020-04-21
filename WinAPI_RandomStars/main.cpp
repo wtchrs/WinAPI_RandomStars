@@ -188,8 +188,6 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
-    
-
     switch (iMsg) {
     case WM_CREATE:
     {
