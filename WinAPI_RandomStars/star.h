@@ -39,7 +39,6 @@ public:
         center.x += velocity.x * time;
         center.y += velocity.y * time;
         angle += rotate * time;
-        //angle -= (angle / 72) * 72;
         angle = fmod(angle, RAD(72.0));
     }
 
