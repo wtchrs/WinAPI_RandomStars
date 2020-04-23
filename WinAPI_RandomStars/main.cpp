@@ -192,7 +192,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_CREATE:
     {
         std::vector<Star> stars = { };
-        for (int i = 0; i < 20; ++i) {
+        for (int i = 0; i < 20; i++) {
             stars.push_back(
                 Star(static_cast<double>(std::rand() % subWndRect.right), static_cast<double>(std::rand() % subWndRect.bottom),
                     static_cast<double>(std::rand() % 200 - 100), static_cast<double>(std::rand() % 200 - 100),
@@ -244,7 +244,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 void timerProc(HWND hWnd, UINT nID, UINT nEl, DWORD time) {
     int idx = getWndNumber(hWnd);
 
-    std::for_each(wnds[idx].begin(), wnds[idx].end(),
+    std::for_each(wnds[idx-1].begin(), wnds[idx-1].end(),
         [](Star& star) {
             star.move(0.01);
             if (subWndRect.left > star.getCenterX() || star.getCenterX() > subWndRect.right) {
