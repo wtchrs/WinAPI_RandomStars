@@ -21,7 +21,7 @@ LRESULT CALLBACK mainProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK subProc(HWND, UINT, WPARAM, LPARAM);
 void CALLBACK timerProc(HWND, UINT, UINT, DWORD);
 
-int getWndNumber(HWND hWnd);
+INT64 getWndNumber(HWND hWnd);
 
 INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpszArg, INT nCmdShow) {
     g_hInstance = hInstance;
@@ -73,14 +73,14 @@ INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpsz
         DispatchMessage(&msg);
     }
 
-    return msg.wParam;
+    return static_cast<INT>(msg.wParam);
 }
 
 LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     static std::list<HWND> subHWnds = { };
     static RECT rect = { 10, 10, 90, 35 };
     static bool is_clicked = false;
-    static int count = 0;
+    static INT64 count = 0;
 
     switch (iMsg) {
     case WM_CREATE:
@@ -99,8 +99,8 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     }
     case WM_LBUTTONDOWN:
     {
-        int nx = LOWORD(lParam);
-        int ny = HIWORD(lParam);
+        INT nx = LOWORD(lParam);
+        INT ny = HIWORD(lParam);
 
         if ((rect.left < nx) && (nx < rect.right) && (rect.top < ny) && (ny < rect.bottom)) {
             is_clicked = true;
@@ -111,8 +111,8 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     }
     case WM_MOUSEMOVE:
     {
-        int nx = LOWORD(lParam);
-        int ny = HIWORD(lParam);
+        INT nx = LOWORD(lParam);
+        INT ny = HIWORD(lParam);
 
         if (((nx < rect.left) || (rect.right < nx) || (ny < rect.top) || (rect.bottom < ny)) && is_clicked) {
             is_clicked = false;
@@ -127,7 +127,7 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
             if (count < 20) {
                 std::basic_string<TCHAR> wndName;
                 wndName.resize(15);
-                _stprintf_s(const_cast<TCHAR*>(wndName.c_str()), wndName.size(), _T("Stars %d"), ++count);
+                _stprintf_s(const_cast<TCHAR*>(wndName.c_str()), wndName.size(), _T("Stars %I64d"), ++count);
 
                 HWND subHWnd = CreateWindow(
                     S_CLASSNAME, wndName.c_str(),
@@ -192,12 +192,12 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_CREATE:
     {
         std::vector<Star> stars = { };
-        for (int i = 0; i < 20; i++) {
+        for (INT i = 0; i < 20; i++) {
             stars.push_back(
-                Star(static_cast<double>(std::rand() % subWndRect.right), static_cast<double>(std::rand() % subWndRect.bottom),
-                    static_cast<double>(std::rand() % 200 - 100), static_cast<double>(std::rand() % 200 - 100),
-                    static_cast<double>(std::rand()), static_cast<double>(std::rand() % 360),
-                    static_cast<double>(10 + std::rand() % 30)));
+                Star((DOUBLE)(std::rand() % subWndRect.right), (DOUBLE)(std::rand() % subWndRect.bottom),
+                    (DOUBLE)((INT64)std::rand() % 200 - 100), (DOUBLE)((INT64)std::rand() % 200 - 100),
+                    (DOUBLE)(std::rand()), (DOUBLE)(std::rand() % 360),
+                    (DOUBLE)(10 + (INT64)std::rand() % 30)));
         }
 
         wnds[getWndNumber(hWnd) - 1] = stars;
@@ -221,7 +221,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         HDC hDC = BeginPaint(hWnd, &ps);
         SetPolyFillMode(hDC, WINDING);
 
-        int idx = getWndNumber(hWnd);
+        INT64 idx = getWndNumber(hWnd);
 
         for (const Star& star : wnds[idx - 1]) {
             Polygon(hDC, star.getPoints(), 10);
@@ -242,7 +242,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 void timerProc(HWND hWnd, UINT nID, UINT nEl, DWORD time) {
-    int idx = getWndNumber(hWnd);
+    INT64 idx = getWndNumber(hWnd);
 
     std::for_each(wnds[idx-1].begin(), wnds[idx-1].end(),
         [](Star& star) {
@@ -258,7 +258,7 @@ void timerProc(HWND hWnd, UINT nID, UINT nEl, DWORD time) {
     InvalidateRect(hWnd, nullptr, false);
 }
 
-inline int getWndNumber(HWND hWnd) {
+inline INT64 getWndNumber(HWND hWnd) {
     std::basic_string<TCHAR> title;
     title.resize(15);
 

@@ -4,13 +4,13 @@
 #include <vector>
 #include <Windows.h>
 
-const double PI = std::acos(-1.0);
+const DOUBLE PI = std::acos(-1.0);
 #define RAD(deg) deg * PI / 180.0
 #define DEG(rad) rad * 180.0 / PI
 
-static struct dPoint
+struct dPoint
 {
-    double x, y;
+    DOUBLE x, y;
 };
 
 class Star
@@ -18,13 +18,13 @@ class Star
 private:
     dPoint center = { };
     dPoint velocity = { };
-    double angle;
-    double rotate;
-    double ldist;
-    double ratio;
+    DOUBLE angle;
+    DOUBLE rotate;
+    DOUBLE ldist;
+    DOUBLE ratio;
 
 public:
-    Star(double x, double y, double vX, double vY, double angle, double rotate, double ldistance, double ratio = 0.36);
+    Star(DOUBLE x, DOUBLE y, DOUBLE vX, DOUBLE vY, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio = 0.36);
     //Star(const Star&);
 
     void negVelocityX() {
@@ -35,25 +35,25 @@ public:
         velocity.y = -velocity.y;
     }
 
-    void move(const double time) {
+    void move(const DOUBLE time) {
         center.x += velocity.x * time;
         center.y += velocity.y * time;
         angle += rotate * time;
         angle = fmod(angle, RAD(72.0));
     }
 
-    double getCenterX() const {
+    DOUBLE getCenterX() const {
         return center.x;
     }
 
-    double getCenterY() const {
+    DOUBLE getCenterY() const {
         return center.y;
     }
 
     POINT* getPoints() const;
 };
 
-Star::Star(double x, double y, double vX, double vY, double angle, double rotate, double ldistance, double ratio) {
+Star::Star(DOUBLE x, DOUBLE y, DOUBLE vX, DOUBLE vY, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio) {
     this->center.x = x;
     this->center.y = y;
     this->velocity.x = vX;
