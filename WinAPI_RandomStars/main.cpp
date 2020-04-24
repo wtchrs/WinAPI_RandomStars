@@ -79,9 +79,9 @@ INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpsz
 
 LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     static std::list<HWND> subHWnds = { };
-    static RECT rect = { 10, 10, 90, 35 };
-    static bool is_clicked = false;
-    static INT64 count = 0;
+    static RECT rect                = { 10, 10, 90, 35 };
+    static bool is_clicked          = false;
+    static INT64 count              = 0;
 
     switch (iMsg) {
     case WM_CREATE:
@@ -150,9 +150,9 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_PAINT:
     {
         PAINTSTRUCT ps = { };
-        HDC hDC = BeginPaint(hWnd, &ps);
-        HBRUSH hBr = nullptr;
-        HBRUSH hOldBr = nullptr;
+        HDC hDC        = BeginPaint(hWnd, &ps);
+        HBRUSH hBr     = nullptr;
+        HBRUSH hOldBr  = nullptr;
 
         if (is_clicked) {
             hBr = CreateSolidBrush(RGB(195, 195, 195));

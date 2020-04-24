@@ -39,8 +39,8 @@ public:
     void move(const DOUBLE time) {
         center.x += velocity.x * time;
         center.y += velocity.y * time;
-        angle += rotate * time;
-        angle = fmod(angle, RAD(72.0));
+        angle    += rotate * time;
+        angle     = fmod(angle, RAD(72.0));
     }
 
     DOUBLE getCenterX() const {
@@ -55,12 +55,12 @@ public:
 };
 
 Star::Star(DOUBLE x, DOUBLE y, DOUBLE vx, DOUBLE vy, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio) {
-    this->center = { x, y };
+    this->center   = { x, y };
     this->velocity = { vx, vy };
-    this->angle = RAD(fmod(angle, 72.0));
-    this->rotate = RAD(rotate);
-    this->ldist = ldistance;
-    this->ratio = ratio;
+    this->angle    = RAD(fmod(angle, 72.0));
+    this->rotate   = RAD(rotate);
+    this->ldist    = ldistance;
+    this->ratio    = ratio;
 }
 
 POINT* Star::getPoints() const {
