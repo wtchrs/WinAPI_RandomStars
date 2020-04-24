@@ -16,16 +16,17 @@ struct dPoint
 class Star
 {
 private:
-    dPoint center = { };
+    dPoint center   = { };
     dPoint velocity = { };
-    DOUBLE angle;
-    DOUBLE rotate;
-    DOUBLE ldist;
-    DOUBLE ratio;
+    DOUBLE angle    = 0.0;
+    DOUBLE rotate   = 0.0;
+    DOUBLE ldist    = 0.0;
+    DOUBLE ratio    = 0.0;
 
 public:
     Star(DOUBLE x, DOUBLE y, DOUBLE vX, DOUBLE vY, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio = 0.36);
-    //Star(const Star&);
+
+    ~Star() { }
 
     void negVelocityX() {
         velocity.x = -velocity.x;
@@ -53,11 +54,9 @@ public:
     POINT* getPoints() const;
 };
 
-Star::Star(DOUBLE x, DOUBLE y, DOUBLE vX, DOUBLE vY, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio) {
-    this->center.x = x;
-    this->center.y = y;
-    this->velocity.x = vX;
-    this->velocity.y = vY;
+Star::Star(DOUBLE x, DOUBLE y, DOUBLE vx, DOUBLE vy, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio) {
+    this->center = { x, y };
+    this->velocity = { vx, vy };
     this->angle = RAD(fmod(angle, 72.0));
     this->rotate = RAD(rotate);
     this->ldist = ldistance;

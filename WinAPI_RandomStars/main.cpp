@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <algorithm>
 #include <list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -15,7 +16,7 @@ static HINSTANCE g_hInstance;
 
 static RECT subWndRect = { 0, 0, 500, 500 };
 
-static std::vector<std::vector<Star>> wnds(20);
+static std::vector<std::vector<std::unique_ptr<Star>>> wnds(20);
 
 LRESULT CALLBACK mainProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK subProc(HWND, UINT, WPARAM, LPARAM);
@@ -191,16 +192,14 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     switch (iMsg) {
     case WM_CREATE:
     {
-        std::vector<Star> stars = { };
-        for (INT i = 0; i < 20; i++) {
-            stars.push_back(
-                Star((DOUBLE)(std::rand() % subWndRect.right), (DOUBLE)(std::rand() % subWndRect.bottom),
+        INT64 idx = getWndNumber(hWnd);
+        for (INT64 i = 0; i < 20; ++i) {
+            wnds[idx - 1].emplace_back(
+                new Star((DOUBLE)(std::rand() % subWndRect.right), (DOUBLE)(std::rand() % subWndRect.bottom),
                     (DOUBLE)((INT64)std::rand() % 200 - 100), (DOUBLE)((INT64)std::rand() % 200 - 100),
                     (DOUBLE)(std::rand()), (DOUBLE)(std::rand() % 360),
                     (DOUBLE)(10 + (INT64)std::rand() % 30)));
         }
-
-        wnds[getWndNumber(hWnd) - 1] = stars;
 
         SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, subWndRect.right, subWndRect.bottom, SWP_NOMOVE);
         SetTimer(hWnd, 1, 10, reinterpret_cast<TIMERPROC>(timerProc));
@@ -223,9 +222,10 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 
         INT64 idx = getWndNumber(hWnd);
 
-        for (const Star& star : wnds[idx - 1]) {
-            Polygon(hDC, star.getPoints(), 10);
-        }
+        std::for_each(wnds[idx - 1].cbegin(), wnds[idx - 1].cend(),
+            [&hDC](const std::unique_ptr<Star>& star) {
+                Polygon(hDC, star->getPoints(), 10);
+            });
 
         EndPaint(hWnd, &ps);
 
@@ -244,14 +244,14 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 void timerProc(HWND hWnd, UINT nID, UINT nEl, DWORD time) {
     INT64 idx = getWndNumber(hWnd);
 
-    std::for_each(wnds[idx-1].begin(), wnds[idx-1].end(),
-        [](Star& star) {
-            star.move(0.01);
-            if (subWndRect.left > star.getCenterX() || star.getCenterX() > subWndRect.right) {
-                star.negVelocityX();
+    std::for_each(wnds[idx-1].cbegin(), wnds[idx-1].cend(),
+        [](const std::unique_ptr<Star>& star) {
+            star->move(0.01);
+            if (subWndRect.left > star->getCenterX() || star->getCenterX() > (INT64)subWndRect.right - 15) {
+                star->negVelocityX();
             }
-            if (subWndRect.top > star.getCenterY() || star.getCenterY() > subWndRect.bottom) {
-                star.negVelocityY();
+            if (subWndRect.top > star->getCenterY() || star->getCenterY() > (INT64)subWndRect.bottom - 40) {
+                star->negVelocityY();
             }
         });
 
