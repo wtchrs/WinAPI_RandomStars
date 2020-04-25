@@ -1,9 +1,8 @@
 #include <Windows.h>
 #include <tchar.h>
-#include <cstdio>
 #include <algorithm>
-#include <list>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -78,10 +77,10 @@ INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpsz
 }
 
 LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
-    static std::list<HWND> subHWnds = { };
-    static RECT rect                = { 10, 10, 90, 35 };
-    static bool is_clicked          = false;
-    static INT64 count              = 0;
+    static std::vector<HWND> subHWnds(20, nullptr);
+    static RECT rect       = { 10, 10, 90, 35 };
+    static bool is_clicked = false;
+    static INT64 count     = 0;
 
     switch (iMsg) {
     case WM_CREATE:
@@ -126,19 +125,18 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     {
         if (is_clicked) {
             if (count < 20) {
-                std::basic_string<TCHAR> wndName;
-                wndName.resize(15);
-                _stprintf_s(const_cast<TCHAR*>(wndName.c_str()), wndName.size(), _T("Stars %I64d"), ++count);
+                std::basic_stringstream<TCHAR> wndName;
+                wndName << _T("Stars ") << ++count;
 
                 HWND subHWnd = CreateWindow(
-                    S_CLASSNAME, wndName.c_str(),
+                    S_CLASSNAME, wndName.str().c_str(),
                     WS_OVERLAPPEDWINDOW,
                     CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                     NULL, NULL, g_hInstance, NULL);
 
                 ShowWindow(subHWnd, SW_SHOWNORMAL);
 
-                subHWnds.push_back(subHWnd);
+                subHWnds[count - 1] = subHWnd;
             }
 
             is_clicked = false;
@@ -195,7 +193,8 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         INT64 idx = getWndNumber(hWnd);
         for (INT64 i = 0; i < 20; ++i) {
             wnds[idx - 1].emplace_back(
-                new Star((DOUBLE)(std::rand() % subWndRect.right), (DOUBLE)(std::rand() % subWndRect.bottom),
+                new Star(
+                    (DOUBLE)(std::rand() % ((INT64)subWndRect.right - 15)), (DOUBLE)(std::rand() % ((INT64)subWndRect.bottom - 40)),
                     (DOUBLE)((INT64)std::rand() % 200 - 100), (DOUBLE)((INT64)std::rand() % 200 - 100),
                     (DOUBLE)(std::rand()), (DOUBLE)(std::rand() % 360),
                     (DOUBLE)(10 + (INT64)std::rand() % 30)));
@@ -234,7 +233,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_DESTROY:
     {
         KillTimer(hWnd, 1);
-        wnds[getWndNumber(hWnd)].clear();
+        wnds[getWndNumber(hWnd) - 1].clear();
     }
     }
 
