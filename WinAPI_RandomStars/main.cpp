@@ -11,11 +11,11 @@
 static const TCHAR* M_CLASSNAME = _T("Main");
 static const TCHAR* S_CLASSNAME = _T("Sub");
 
+static const RECT subWndRect = { 0, 0, 500, 500 };
+
 static HINSTANCE g_hInstance;
 
-static RECT subWndRect = { 0, 0, 500, 500 };
-
-static std::vector<std::vector<std::unique_ptr<Star>>> wnds(20);
+static std::vector<std::unique_ptr<std::vector<std::unique_ptr<Star>>>> g_wnds;
 
 LRESULT CALLBACK mainProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK subProc(HWND, UINT, WPARAM, LPARAM);
@@ -25,6 +25,7 @@ INT64 getWndNumber(HWND hWnd);
 
 INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpszArg, INT nCmdShow) {
     g_hInstance = hInstance;
+    g_wnds.reserve(20);
 
     MSG msg;
     
@@ -190,10 +191,11 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     switch (iMsg) {
     case WM_CREATE:
     {
-        INT64 idx = getWndNumber(hWnd);
+        g_wnds.emplace_back(std::make_unique<std::vector<std::unique_ptr<Star>>>())->reserve(20);
+
         for (INT64 i = 0; i < 20; ++i) {
-            wnds[idx - 1].emplace_back(
-                new Star(
+            g_wnds.back()->emplace_back(
+                std::make_unique<Star>(
                     (DOUBLE)(std::rand() % ((INT64)subWndRect.right - 15)), (DOUBLE)(std::rand() % ((INT64)subWndRect.bottom - 40)),
                     (DOUBLE)((INT64)std::rand() % 200 - 100), (DOUBLE)((INT64)std::rand() % 200 - 100),
                     (DOUBLE)(std::rand()), (DOUBLE)(std::rand() % 360),
@@ -221,7 +223,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 
         INT64 idx = getWndNumber(hWnd);
 
-        std::for_each(wnds[idx - 1].cbegin(), wnds[idx - 1].cend(),
+        std::for_each(g_wnds[idx - 1]->cbegin(), g_wnds[idx - 1]->cend(),
             [&hDC](const std::unique_ptr<Star>& star) {
                 Polygon(hDC, star->getPoints(), 10);
             });
@@ -233,7 +235,8 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_DESTROY:
     {
         KillTimer(hWnd, 1);
-        wnds[getWndNumber(hWnd) - 1].clear();
+        g_wnds[getWndNumber(hWnd) - 1]->clear();
+        //TODO: when one of sub windows destroyed, decrease numbers of windows that have bigger numbers.
     }
     }
 
@@ -243,7 +246,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 void timerProc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
     INT64 idx = getWndNumber(hWnd);
 
-    std::for_each(wnds[idx-1].cbegin(), wnds[idx-1].cend(),
+    std::for_each(g_wnds[idx-1]->cbegin(), g_wnds[idx-1]->cend(),
         [](const std::unique_ptr<Star>& star) {
             star->move(0.01);
             if (subWndRect.left > star->getCenterX() || star->getCenterX() > (INT64)subWndRect.right - 15) {
