@@ -19,7 +19,7 @@ static std::vector<std::vector<std::unique_ptr<Star>>> wnds(20);
 
 LRESULT CALLBACK mainProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK subProc(HWND, UINT, WPARAM, LPARAM);
-void CALLBACK timerProc(HWND, UINT, UINT, DWORD);
+void CALLBACK timerProc(HWND, UINT, UINT_PTR, DWORD);
 
 INT64 getWndNumber(HWND hWnd);
 
@@ -201,7 +201,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         }
 
         SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, subWndRect.right, subWndRect.bottom, SWP_NOMOVE);
-        SetTimer(hWnd, 1, 10, reinterpret_cast<TIMERPROC>(timerProc));
+        SetTimer(hWnd, 1, 10, timerProc);
         break;
     }
     case WM_GETMINMAXINFO:
@@ -240,7 +240,7 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd, iMsg, wParam, lParam);
 }
 
-void timerProc(HWND hWnd, UINT nID, UINT nEl, DWORD time) {
+void timerProc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
     INT64 idx = getWndNumber(hWnd);
 
     std::for_each(wnds[idx-1].cbegin(), wnds[idx-1].cend(),
