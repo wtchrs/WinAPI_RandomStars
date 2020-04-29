@@ -43,7 +43,7 @@ INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpsz
     g_sub_hwnds_vec.reserve(20);
 
     MSG msg;
-    
+
     WNDCLASS m_wnd_class;
     HWND m_hwnd;
 
@@ -130,7 +130,8 @@ LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         INT nx = LOWORD(lParam);
         INT ny = HIWORD(lParam);
 
-        if (((nx < rect.left) || (rect.right < nx) || (ny < rect.top) || (rect.bottom < ny)) && is_clicked) {
+        if (((nx < rect.left) || (rect.right < nx) || (ny < rect.top) || (rect.bottom < ny))
+                && is_clicked) {
             is_clicked = false;
             InvalidateRect(hWnd, nullptr, false);
         }
@@ -191,8 +192,9 @@ LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         std::for_each(
             g_sub_hwnds_vec.begin(), g_sub_hwnds_vec.end(),
             [](HWND hwnd) {
-                if (IsWindow(hwnd))
+                if (IsWindow(hwnd)) {
                     DestroyWindow(hwnd);
+                }
             });
 
         PostQuitMessage(0);
@@ -213,9 +215,12 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
             g_star_vecs.back()->emplace_back(
                 std::make_unique<Star>(
                     RGB(std::rand() % 256, std::rand() % 256, std::rand() % 256),
-                    (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.right - 15)), (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.bottom - 40)),
-                    (DOUBLE)((INT64)std::rand() % 200 - 100), (DOUBLE)((INT64)std::rand() % 200 - 100),
-                    (DOUBLE)(std::rand()), (DOUBLE)(std::rand() % 360),
+                    (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.right - 15)),
+                    (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.bottom - 40)),
+                    (DOUBLE)((INT64)std::rand() % 200 - 100),
+                    (DOUBLE)((INT64)std::rand() % 200 - 100),
+                    (DOUBLE)(std::rand()),
+                    (DOUBLE)(std::rand() % 360),
                     (DOUBLE)(10 + (INT64)std::rand() % 30)));
         }
 
@@ -301,10 +306,12 @@ void timer_proc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
         [](const std::unique_ptr<Star>& star) {
             star->move((DOUBLE)TIME_INTERVAL / 1000.0);
 
-            if (sub_wnd_rect.left > star->get_center_x() || star->get_center_x() > (INT64)sub_wnd_rect.right - 15) {
+            if (sub_wnd_rect.left > star->get_center_x()
+                    || star->get_center_x() > (INT64)sub_wnd_rect.right - 15) {
                 star->neg_velocity_x();
             }
-            if (sub_wnd_rect.top > star->get_center_y() || star->get_center_y() > (INT64)sub_wnd_rect.bottom - 40) {
+            if (sub_wnd_rect.top > star->get_center_y()
+                    || star->get_center_y() > (INT64)sub_wnd_rect.bottom - 40) {
                 star->neg_velocity_y();
             }
         });
