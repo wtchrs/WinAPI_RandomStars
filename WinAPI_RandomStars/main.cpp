@@ -16,6 +16,8 @@
 #define to_tstring std::to_string
 #endif
 
+static constexpr UINT TIME_INTERVAL = 30;
+
 static const TCHAR* M_CLASSNAME = _T("Main");
 static const TCHAR* S_CLASSNAME = _T("Sub");
 
@@ -103,10 +105,12 @@ LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_GETMINMAXINFO:
     {
         auto info = reinterpret_cast<MINMAXINFO*>(lParam);
+
         info->ptMinTrackSize.x = 250;
         info->ptMinTrackSize.y = 85;
         info->ptMaxTrackSize.x = 250;
         info->ptMaxTrackSize.y = 85;
+
         break;
     }
     case WM_LBUTTONDOWN:
@@ -140,15 +144,15 @@ LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
                 tstring wnd_text(_T("Stars "));
                 wnd_text += to_tstring(++count);
 
-                HWND subHWnd = CreateWindow(
+                HWND sub_hwnd = CreateWindow(
                     S_CLASSNAME, wnd_text.c_str(),
                     WS_OVERLAPPEDWINDOW,
                     CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                     NULL, NULL, g_hInstance, NULL);
 
-                ShowWindow(subHWnd, SW_SHOWNORMAL);
+                ShowWindow(sub_hwnd, SW_SHOWNORMAL);
 
-                g_sub_hwnds_vec.push_back(subHWnd);
+                g_sub_hwnds_vec.push_back(sub_hwnd);
             }
 
             is_clicked = false;
@@ -162,19 +166,19 @@ LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         PAINTSTRUCT ps = { };
         HDC hDC        = BeginPaint(hWnd, &ps);
         HBRUSH hBr     = nullptr;
-        HBRUSH hOldBr  = nullptr;
+        HBRUSH old_hBr = nullptr;
 
         if (is_clicked) {
             hBr = CreateSolidBrush(RGB(195, 195, 195));
-            hOldBr = reinterpret_cast<HBRUSH>(SelectObject(hDC, hBr));
+            old_hBr = reinterpret_cast<HBRUSH>(SelectObject(hDC, hBr));
         }
 
         Rectangle(hDC, rect.left, rect.top, rect.right, rect.bottom);
         SetBkMode(hDC, TRANSPARENT);
         TextOut(hDC, 15, 15, _T("New"), 3);
 
-        if (hOldBr) {
-            SelectObject(hDC, hOldBr);
+        if (old_hBr) {
+            SelectObject(hDC, old_hBr);
             DeleteObject(hBr);
         }
 
@@ -202,11 +206,13 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     switch (iMsg) {
     case WM_CREATE:
     {
-        g_star_vecs.emplace_back(std::make_unique<std::vector<std::unique_ptr<Star>>>())->reserve(20);
+        g_star_vecs.emplace_back(std::make_unique<std::vector<std::unique_ptr<Star>>>())
+            ->reserve(20);
 
         for (INT64 i = 0; i < 20; ++i) {
             g_star_vecs.back()->emplace_back(
                 std::make_unique<Star>(
+                    RGB(std::rand() % 256, std::rand() % 256, std::rand() % 256),
                     (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.right - 15)), (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.bottom - 40)),
                     (DOUBLE)((INT64)std::rand() % 200 - 100), (DOUBLE)((INT64)std::rand() % 200 - 100),
                     (DOUBLE)(std::rand()), (DOUBLE)(std::rand() % 360),
@@ -214,30 +220,47 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         }
 
         SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, sub_wnd_rect.right, sub_wnd_rect.bottom, SWP_NOMOVE);
-        SetTimer(hWnd, 1, 10, timer_proc);
+        SetTimer(hWnd, 1, TIME_INTERVAL, timer_proc);
+
         break;
     }
     case WM_GETMINMAXINFO:
     {
         auto info = reinterpret_cast<MINMAXINFO*>(lParam);
+
         info->ptMinTrackSize.x = 500;
         info->ptMinTrackSize.y = 500;
         info->ptMaxTrackSize.x = 500;
         info->ptMaxTrackSize.y = 500;
+
         break;
     }
     case WM_PAINT:
     {
         PAINTSTRUCT ps = { };
-        HDC hDC = BeginPaint(hWnd, &ps);
+        HDC hDC        = BeginPaint(hWnd, &ps);
+        HBRUSH hbr     = nullptr;
+        HBRUSH old_hbr = nullptr;
+        HPEN hpen      = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
+        HPEN old_hpen  = reinterpret_cast<HPEN>(SelectObject(hDC, hpen));
+
         SetPolyFillMode(hDC, WINDING);
 
         INT64 idx = get_wnd_number(hWnd) - 1;
 
         std::for_each(g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
-            [&hDC](const std::unique_ptr<Star>& star) {
-                Polygon(hDC, star->getPoints(), 10);
+            [&hDC, &hbr, &old_hbr](const std::unique_ptr<Star>& star) {
+                hbr = CreateSolidBrush(star->get_color());
+                old_hbr = reinterpret_cast<HBRUSH>(SelectObject(hDC, hbr));
+
+                Polygon(hDC, star->get_points(), 10);
+
+                SelectObject(hDC, old_hbr);
+                DeleteObject(hbr);
             });
+
+        SelectObject(hDC, old_hpen);
+        DeleteObject(hpen);
 
         EndPaint(hWnd, &ps);
 
@@ -263,6 +286,8 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         }
 
         --count;
+
+        break;
     }
     }
 
@@ -274,16 +299,17 @@ void timer_proc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
 
     std::for_each(g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
         [](const std::unique_ptr<Star>& star) {
-            star->move(0.01);
-            if (sub_wnd_rect.left > star->getCenterX() || star->getCenterX() > (INT64)sub_wnd_rect.right - 15) {
-                star->negVelocityX();
+            star->move((DOUBLE)TIME_INTERVAL / 1000.0);
+
+            if (sub_wnd_rect.left > star->get_center_x() || star->get_center_x() > (INT64)sub_wnd_rect.right - 15) {
+                star->neg_velocity_x();
             }
-            if (sub_wnd_rect.top > star->getCenterY() || star->getCenterY() > (INT64)sub_wnd_rect.bottom - 40) {
-                star->negVelocityY();
+            if (sub_wnd_rect.top > star->get_center_y() || star->get_center_y() > (INT64)sub_wnd_rect.bottom - 40) {
+                star->neg_velocity_y();
             }
         });
 
-    InvalidateRect(hWnd, nullptr, false);
+    InvalidateRect(hWnd, nullptr, true);
 }
 
 inline INT64 get_wnd_number(HWND hWnd) {

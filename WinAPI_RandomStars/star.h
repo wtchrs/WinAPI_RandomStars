@@ -5,6 +5,7 @@
 #include <Windows.h>
 
 const DOUBLE PI = std::acos(-1.0);
+
 #define RAD(deg) deg * PI / 180.0
 #define DEG(rad) rad * 180.0 / PI
 
@@ -16,6 +17,7 @@ struct dPoint
 class Star
 {
 private:
+    COLORREF color  = RGB(0, 0, 0);
     dPoint center   = { };
     dPoint velocity = { };
     DOUBLE angle    = 0.0;
@@ -25,14 +27,15 @@ private:
 
 public:
     Star(DOUBLE x, DOUBLE y, DOUBLE vX, DOUBLE vY, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio = 0.36);
+    Star(COLORREF color, DOUBLE x, DOUBLE y, DOUBLE vX, DOUBLE vY, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio = 0.36);
 
     ~Star() { }
 
-    void negVelocityX() {
+    void neg_velocity_x() {
         velocity.x = -velocity.x;
     }
 
-    void negVelocityY() {
+    void neg_velocity_y() {
         velocity.y = -velocity.y;
     }
 
@@ -43,15 +46,19 @@ public:
         angle     = fmod(angle, RAD(72.0));
     }
 
-    DOUBLE getCenterX() const {
+    DOUBLE get_center_x() const {
         return center.x;
     }
 
-    DOUBLE getCenterY() const {
+    DOUBLE get_center_y() const {
         return center.y;
     }
 
-    POINT* getPoints() const;
+    COLORREF get_color() const{
+        return color;
+    }
+
+    POINT* get_points() const;
 };
 
 Star::Star(DOUBLE x, DOUBLE y, DOUBLE vx, DOUBLE vy, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio) {
@@ -63,7 +70,17 @@ Star::Star(DOUBLE x, DOUBLE y, DOUBLE vx, DOUBLE vy, DOUBLE angle, DOUBLE rotate
     this->ratio    = ratio;
 }
 
-POINT* Star::getPoints() const {
+Star::Star(COLORREF color, DOUBLE x, DOUBLE y, DOUBLE vx, DOUBLE vy, DOUBLE angle, DOUBLE rotate, DOUBLE ldistance, DOUBLE ratio){
+    this->color    = color;
+    this->center   = { x, y };
+    this->velocity = { vx, vy };
+    this->angle    = RAD(fmod(angle, 72.0));
+    this->rotate   = RAD(rotate);
+    this->ldist    = ldistance;
+    this->ratio    = ratio;
+}
+
+POINT* Star::get_points() const {
     POINT points[10] = { };
 
     for (int i = 0; i < 10; i+=2) {
