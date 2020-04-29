@@ -8,66 +8,79 @@
 
 #include "star.h"
 
+#define tstring std::basic_string<TCHAR>
+
+#ifdef UNICODE
+#define to_tstring std::to_wstring
+#else
+#define to_tstring std::to_string
+#endif
+
 static const TCHAR* M_CLASSNAME = _T("Main");
 static const TCHAR* S_CLASSNAME = _T("Sub");
 
-static const RECT subWndRect = { 0, 0, 500, 500 };
+static const RECT sub_wnd_rect = { 0, 0, 500, 500 };
 
 static HINSTANCE g_hInstance;
 
-static std::vector<std::unique_ptr<std::vector<std::unique_ptr<Star>>>> g_wnds;
+static std::vector<std::unique_ptr<std::vector<std::unique_ptr<Star>>>> g_star_vecs;
+static std::vector<HWND> g_sub_hwnds_vec;
 
-LRESULT CALLBACK mainProc(HWND, UINT, WPARAM, LPARAM);
-LRESULT CALLBACK subProc(HWND, UINT, WPARAM, LPARAM);
-void CALLBACK timerProc(HWND, UINT, UINT_PTR, DWORD);
+static INT64 count = 0;
 
-INT64 getWndNumber(HWND hWnd);
+LRESULT CALLBACK main_proc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK sub_proc(HWND, UINT, WPARAM, LPARAM);
+void CALLBACK timer_proc(HWND, UINT, UINT_PTR, DWORD);
+
+INT64 get_wnd_number(HWND hWnd);
 
 INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpszArg, INT nCmdShow) {
     g_hInstance = hInstance;
-    g_wnds.reserve(20);
+
+    g_star_vecs.reserve(20);
+    g_sub_hwnds_vec.reserve(20);
 
     MSG msg;
     
-    WNDCLASS mWndClass;
-    HWND mHWnd;
+    WNDCLASS m_wnd_class;
+    HWND m_hwnd;
 
-    mWndClass.style         = CS_VREDRAW | CS_HREDRAW;
-    mWndClass.lpfnWndProc   = mainProc;
-    mWndClass.cbClsExtra    = 0;
-    mWndClass.cbWndExtra    = 0;
-    mWndClass.hInstance     = hInstance;
-    mWndClass.hIcon         = LoadIcon(NULL, IDC_ICON);
-    mWndClass.hCursor       = LoadCursor(NULL, IDC_ARROW);
-    mWndClass.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
-    mWndClass.lpszMenuName  = nullptr;
-    mWndClass.lpszClassName = M_CLASSNAME;
+    m_wnd_class.style         = CS_VREDRAW | CS_HREDRAW;
+    m_wnd_class.lpfnWndProc   = main_proc;
+    m_wnd_class.cbClsExtra    = 0;
+    m_wnd_class.cbWndExtra    = 0;
+    m_wnd_class.hInstance     = hInstance;
+    m_wnd_class.hIcon         = LoadIcon(NULL, IDC_ICON);
+    m_wnd_class.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    m_wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
+    m_wnd_class.lpszMenuName  = nullptr;
+    m_wnd_class.lpszClassName = M_CLASSNAME;
 
-    RegisterClass(&mWndClass);
+    RegisterClass(&m_wnd_class);
 
-    WNDCLASS sWndClass;
+    WNDCLASS s_wnd_class;
 
-    sWndClass.style         = NULL;
-    sWndClass.lpfnWndProc   = subProc;
-    sWndClass.cbClsExtra    = 0;
-    sWndClass.cbWndExtra    = 0;
-    sWndClass.hInstance     = hInstance;
-    sWndClass.hIcon         = LoadIcon(NULL, IDC_ICON);
-    sWndClass.hCursor       = LoadCursor(NULL, IDC_ARROW);
-    sWndClass.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
-    sWndClass.lpszMenuName  = nullptr;
-    sWndClass.lpszClassName = S_CLASSNAME;
+    s_wnd_class.style         = NULL;
+    s_wnd_class.lpfnWndProc   = sub_proc;
+    s_wnd_class.cbClsExtra    = 0;
+    s_wnd_class.cbWndExtra    = 0;
+    s_wnd_class.hInstance     = hInstance;
+    s_wnd_class.hIcon         = LoadIcon(NULL, IDC_ICON);
+    s_wnd_class.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    s_wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
+    s_wnd_class.lpszMenuName  = nullptr;
+    s_wnd_class.lpszClassName = S_CLASSNAME;
 
-    RegisterClass(&sWndClass);
+    RegisterClass(&s_wnd_class);
 
-    mHWnd = CreateWindow(
+    m_hwnd = CreateWindow(
         M_CLASSNAME, _T("Stars"),
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
         NULL, NULL, hInstance, NULL);
 
-    ShowWindow(mHWnd, nCmdShow);
-    UpdateWindow(mHWnd);
+    ShowWindow(m_hwnd, nCmdShow);
+    UpdateWindow(m_hwnd);
 
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
@@ -77,11 +90,9 @@ INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpsz
     return static_cast<INT>(msg.wParam);
 }
 
-LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
-    static std::vector<HWND> subHWnds(20, nullptr);
-    static RECT rect       = { 10, 10, 90, 35 };
+LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
+    static const RECT rect = { 10, 10, 90, 35 };
     static bool is_clicked = false;
-    static INT64 count     = 0;
 
     switch (iMsg) {
     case WM_CREATE:
@@ -126,18 +137,18 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     {
         if (is_clicked) {
             if (count < 20) {
-                std::basic_stringstream<TCHAR> wndName;
-                wndName << _T("Stars ") << ++count;
+                tstring wnd_text(_T("Stars "));
+                wnd_text += to_tstring(++count);
 
                 HWND subHWnd = CreateWindow(
-                    S_CLASSNAME, wndName.str().c_str(),
+                    S_CLASSNAME, wnd_text.c_str(),
                     WS_OVERLAPPEDWINDOW,
                     CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                     NULL, NULL, g_hInstance, NULL);
 
                 ShowWindow(subHWnd, SW_SHOWNORMAL);
 
-                subHWnds[count - 1] = subHWnd;
+                g_sub_hwnds_vec.push_back(subHWnd);
             }
 
             is_clicked = false;
@@ -174,10 +185,10 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_DESTROY:
     {
         std::for_each(
-            subHWnds.begin(), subHWnds.end(),
-            [](HWND hWnd) {
-                if (IsWindow(hWnd))
-                    DestroyWindow(hWnd);
+            g_sub_hwnds_vec.begin(), g_sub_hwnds_vec.end(),
+            [](HWND hwnd) {
+                if (IsWindow(hwnd))
+                    DestroyWindow(hwnd);
             });
 
         PostQuitMessage(0);
@@ -187,23 +198,23 @@ LRESULT mainProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     return DefWindowProc(hWnd, iMsg, wParam, lParam);
 }
 
-LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
+LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     switch (iMsg) {
     case WM_CREATE:
     {
-        g_wnds.emplace_back(std::make_unique<std::vector<std::unique_ptr<Star>>>())->reserve(20);
+        g_star_vecs.emplace_back(std::make_unique<std::vector<std::unique_ptr<Star>>>())->reserve(20);
 
         for (INT64 i = 0; i < 20; ++i) {
-            g_wnds.back()->emplace_back(
+            g_star_vecs.back()->emplace_back(
                 std::make_unique<Star>(
-                    (DOUBLE)(std::rand() % ((INT64)subWndRect.right - 15)), (DOUBLE)(std::rand() % ((INT64)subWndRect.bottom - 40)),
+                    (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.right - 15)), (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.bottom - 40)),
                     (DOUBLE)((INT64)std::rand() % 200 - 100), (DOUBLE)((INT64)std::rand() % 200 - 100),
                     (DOUBLE)(std::rand()), (DOUBLE)(std::rand() % 360),
                     (DOUBLE)(10 + (INT64)std::rand() % 30)));
         }
 
-        SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, subWndRect.right, subWndRect.bottom, SWP_NOMOVE);
-        SetTimer(hWnd, 1, 10, timerProc);
+        SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, sub_wnd_rect.right, sub_wnd_rect.bottom, SWP_NOMOVE);
+        SetTimer(hWnd, 1, 10, timer_proc);
         break;
     }
     case WM_GETMINMAXINFO:
@@ -221,9 +232,9 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         HDC hDC = BeginPaint(hWnd, &ps);
         SetPolyFillMode(hDC, WINDING);
 
-        INT64 idx = getWndNumber(hWnd);
+        INT64 idx = get_wnd_number(hWnd) - 1;
 
-        std::for_each(g_wnds[idx - 1]->cbegin(), g_wnds[idx - 1]->cend(),
+        std::for_each(g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
             [&hDC](const std::unique_ptr<Star>& star) {
                 Polygon(hDC, star->getPoints(), 10);
             });
@@ -235,24 +246,39 @@ LRESULT subProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_DESTROY:
     {
         KillTimer(hWnd, 1);
-        g_wnds[getWndNumber(hWnd) - 1]->clear();
-        //TODO: when one of sub windows destroyed, decrease numbers of windows that have bigger numbers.
+
+        INT64 idx = get_wnd_number(hWnd) - 1;
+
+        g_star_vecs.erase(g_star_vecs.begin() + idx);
+        g_sub_hwnds_vec.erase(g_sub_hwnds_vec.begin() + idx);
+
+        for (auto First = g_sub_hwnds_vec.begin() + idx,
+                  Last  = g_sub_hwnds_vec.end(); First != Last; ++First){
+            INT64 wnd_number = get_wnd_number(*First);
+
+            tstring wnd_text(_T("Stars "));
+            wnd_text += to_tstring(wnd_number - 1);
+
+            SetWindowText(*First, wnd_text.c_str());
+        }
+
+        --count;
     }
     }
 
     return DefWindowProc(hWnd, iMsg, wParam, lParam);
 }
 
-void timerProc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
-    INT64 idx = getWndNumber(hWnd);
+void timer_proc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
+    INT64 idx = get_wnd_number(hWnd) - 1;
 
-    std::for_each(g_wnds[idx-1]->cbegin(), g_wnds[idx-1]->cend(),
+    std::for_each(g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
         [](const std::unique_ptr<Star>& star) {
             star->move(0.01);
-            if (subWndRect.left > star->getCenterX() || star->getCenterX() > (INT64)subWndRect.right - 15) {
+            if (sub_wnd_rect.left > star->getCenterX() || star->getCenterX() > (INT64)sub_wnd_rect.right - 15) {
                 star->negVelocityX();
             }
-            if (subWndRect.top > star->getCenterY() || star->getCenterY() > (INT64)subWndRect.bottom - 40) {
+            if (sub_wnd_rect.top > star->getCenterY() || star->getCenterY() > (INT64)sub_wnd_rect.bottom - 40) {
                 star->negVelocityY();
             }
         });
@@ -260,14 +286,11 @@ void timerProc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
     InvalidateRect(hWnd, nullptr, false);
 }
 
-inline INT64 getWndNumber(HWND hWnd) {
-    std::basic_string<TCHAR> title;
+inline INT64 get_wnd_number(HWND hWnd) {
+    tstring title;
     title.resize(15);
 
     GetWindowText(hWnd, const_cast<TCHAR*>(title.c_str()), sizeof(title) / sizeof(TCHAR));
 
-    std::string number;
-    number.assign(title.begin() + 5, title.end());
-
-    return std::stoi(number);
+    return std::stoi(title.substr(5));
 }
