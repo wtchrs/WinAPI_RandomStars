@@ -170,7 +170,7 @@ LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         HBRUSH old_hBr = nullptr;
 
         if (is_clicked) {
-            hBr = CreateSolidBrush(RGB(195, 195, 195));
+            hBr     = CreateSolidBrush(RGB(195, 195, 195));
             old_hBr = reinterpret_cast<HBRUSH>(SelectObject(hDC, hBr));
         }
 
@@ -215,13 +215,13 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
             g_star_vecs.back()->emplace_back(
                 std::make_unique<Star>(
                     RGB(std::rand() % 256, std::rand() % 256, std::rand() % 256),
-                    (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.right - 15)),
-                    (DOUBLE)(std::rand() % ((INT64)sub_wnd_rect.bottom - 40)),
-                    (DOUBLE)((INT64)std::rand() % 200 - 100),
-                    (DOUBLE)((INT64)std::rand() % 200 - 100),
-                    (DOUBLE)(std::rand()),
-                    (DOUBLE)(std::rand() % 360),
-                    (DOUBLE)(10 + (INT64)std::rand() % 30)));
+                    static_cast<DOUBLE>(std::rand() % (static_cast<INT64>(sub_wnd_rect.right) - 15)),
+                    static_cast<DOUBLE>(std::rand() % (static_cast<INT64>(sub_wnd_rect.bottom) - 40)),
+                    static_cast<DOUBLE>(static_cast<INT64>(std::rand()) % 200 - 100),
+                    static_cast<DOUBLE>(static_cast<INT64>(std::rand()) % 200 - 100),
+                    static_cast<DOUBLE>(std::rand()),
+                    static_cast<DOUBLE>(std::rand() % 360),
+                    static_cast<DOUBLE>(10 + static_cast<INT64>(std::rand()) % 30)));
         }
 
         SetWindowPos(hWnd, HWND_BOTTOM, 0, 0, sub_wnd_rect.right, sub_wnd_rect.bottom, SWP_NOMOVE);
@@ -253,7 +253,8 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 
         INT64 idx = get_wnd_number(hWnd) - 1;
 
-        std::for_each(g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
+        std::for_each(
+            g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
             [&hDC, &hbr, &old_hbr](const std::unique_ptr<Star>& star) {
                 hbr = CreateSolidBrush(star->get_color());
                 old_hbr = reinterpret_cast<HBRUSH>(SelectObject(hDC, hbr));
@@ -302,16 +303,17 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 void timer_proc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
     INT64 idx = get_wnd_number(hWnd) - 1;
 
-    std::for_each(g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
+    std::for_each(
+        g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
         [](const std::unique_ptr<Star>& star) {
-            star->move((DOUBLE)TIME_INTERVAL / 1000.0);
+            star->move(static_cast<DOUBLE>(TIME_INTERVAL) / 1000.0);
 
             if (sub_wnd_rect.left > star->get_center_x()
-                    || star->get_center_x() > (INT64)sub_wnd_rect.right - 15) {
+                    || star->get_center_x() > static_cast<INT64>(sub_wnd_rect.right) - 15){
                 star->neg_velocity_x();
             }
             if (sub_wnd_rect.top > star->get_center_y()
-                    || star->get_center_y() > (INT64)sub_wnd_rect.bottom - 40) {
+                    || star->get_center_y() > static_cast<INT64>(sub_wnd_rect.bottom) - 40){
                 star->neg_velocity_y();
             }
         });
