@@ -18,8 +18,8 @@
 
 static constexpr UINT TIME_INTERVAL = 30;
 
-static const TCHAR* M_CLASSNAME = _T("Main");
-static const TCHAR* S_CLASSNAME = _T("Sub");
+static const TCHAR *M_CLASSNAME = _T("Main");
+static const TCHAR *S_CLASSNAME = _T("Sub");
 
 static const RECT sub_wnd_rect = { 0, 0, 500, 500 };
 
@@ -36,7 +36,7 @@ void CALLBACK timer_proc(HWND, UINT, UINT_PTR, DWORD);
 
 INT64 get_wnd_number(HWND hWnd);
 
-INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpszArg, INT nCmdShow) {
+INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR *lpszArg, INT nCmdShow) {
     g_hInstance = hInstance;
 
     g_star_vecs.reserve(20);
@@ -47,30 +47,30 @@ INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR* lpsz
     WNDCLASS m_wnd_class;
     HWND m_hwnd;
 
-    m_wnd_class.style         = CS_VREDRAW | CS_HREDRAW;
-    m_wnd_class.lpfnWndProc   = main_proc;
-    m_wnd_class.cbClsExtra    = 0;
-    m_wnd_class.cbWndExtra    = 0;
-    m_wnd_class.hInstance     = hInstance;
-    m_wnd_class.hIcon         = LoadIcon(NULL, IDC_ICON);
-    m_wnd_class.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    m_wnd_class.style = CS_VREDRAW | CS_HREDRAW;
+    m_wnd_class.lpfnWndProc = main_proc;
+    m_wnd_class.cbClsExtra = 0;
+    m_wnd_class.cbWndExtra = 0;
+    m_wnd_class.hInstance = hInstance;
+    m_wnd_class.hIcon = LoadIcon(NULL, IDC_ICON);
+    m_wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
     m_wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
-    m_wnd_class.lpszMenuName  = nullptr;
+    m_wnd_class.lpszMenuName = nullptr;
     m_wnd_class.lpszClassName = M_CLASSNAME;
 
     RegisterClass(&m_wnd_class);
 
     WNDCLASS s_wnd_class;
 
-    s_wnd_class.style         = NULL;
-    s_wnd_class.lpfnWndProc   = sub_proc;
-    s_wnd_class.cbClsExtra    = 0;
-    s_wnd_class.cbWndExtra    = 0;
-    s_wnd_class.hInstance     = hInstance;
-    s_wnd_class.hIcon         = LoadIcon(NULL, IDC_ICON);
-    s_wnd_class.hCursor       = LoadCursor(NULL, IDC_ARROW);
+    s_wnd_class.style = NULL;
+    s_wnd_class.lpfnWndProc = sub_proc;
+    s_wnd_class.cbClsExtra = 0;
+    s_wnd_class.cbWndExtra = 0;
+    s_wnd_class.hInstance = hInstance;
+    s_wnd_class.hIcon = LoadIcon(NULL, IDC_ICON);
+    s_wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
     s_wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
-    s_wnd_class.lpszMenuName  = nullptr;
+    s_wnd_class.lpszMenuName = nullptr;
     s_wnd_class.lpszClassName = S_CLASSNAME;
 
     RegisterClass(&s_wnd_class);
@@ -104,7 +104,7 @@ LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     }
     case WM_GETMINMAXINFO:
     {
-        auto info = reinterpret_cast<MINMAXINFO*>(lParam);
+        auto info = reinterpret_cast<MINMAXINFO *>(lParam);
 
         info->ptMinTrackSize.x = 250;
         info->ptMinTrackSize.y = 85;
@@ -165,12 +165,12 @@ LRESULT main_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_PAINT:
     {
         PAINTSTRUCT ps = { };
-        HDC hDC        = BeginPaint(hWnd, &ps);
-        HBRUSH hBr     = nullptr;
+        HDC hDC = BeginPaint(hWnd, &ps);
+        HBRUSH hBr = nullptr;
         HBRUSH old_hBr = nullptr;
 
         if (is_clicked) {
-            hBr     = CreateSolidBrush(RGB(195, 195, 195));
+            hBr = CreateSolidBrush(RGB(195, 195, 195));
             old_hBr = reinterpret_cast<HBRUSH>(SelectObject(hDC, hBr));
         }
 
@@ -231,7 +231,7 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     }
     case WM_GETMINMAXINFO:
     {
-        auto info = reinterpret_cast<MINMAXINFO*>(lParam);
+        auto info = reinterpret_cast<MINMAXINFO *>(lParam);
 
         info->ptMinTrackSize.x = 500;
         info->ptMinTrackSize.y = 500;
@@ -243,11 +243,11 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     case WM_PAINT:
     {
         PAINTSTRUCT ps = { };
-        HDC hDC        = BeginPaint(hWnd, &ps);
-        HBRUSH hbr     = nullptr;
+        HDC hDC = BeginPaint(hWnd, &ps);
+        HBRUSH hbr = nullptr;
         HBRUSH old_hbr = nullptr;
-        HPEN hpen      = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
-        HPEN old_hpen  = reinterpret_cast<HPEN>(SelectObject(hDC, hpen));
+        HPEN hpen = CreatePen(PS_NULL, 1, RGB(0, 0, 0));
+        HPEN old_hpen = reinterpret_cast<HPEN>(SelectObject(hDC, hpen));
 
         SetPolyFillMode(hDC, WINDING);
 
@@ -255,7 +255,7 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 
         std::for_each(
             g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
-            [&hDC, &hbr, &old_hbr](const std::unique_ptr<Star>& star) {
+            [&hDC, &hbr, &old_hbr](const std::unique_ptr<Star> &star) {
                 hbr = CreateSolidBrush(star->get_color());
                 old_hbr = reinterpret_cast<HBRUSH>(SelectObject(hDC, hbr));
 
@@ -282,7 +282,7 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         g_sub_hwnds_vec.erase(g_sub_hwnds_vec.begin() + idx);
 
         for (auto First = g_sub_hwnds_vec.begin() + idx,
-                  Last  = g_sub_hwnds_vec.end(); First != Last; ++First){
+                  Last = g_sub_hwnds_vec.end(); First != Last; ++First) {
             INT64 wnd_number = get_wnd_number(*First);
 
             tstring wnd_text(_T("Stars "));
@@ -305,15 +305,15 @@ void timer_proc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
 
     std::for_each(
         g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
-        [](const std::unique_ptr<Star>& star) {
+        [](const std::unique_ptr<Star> &star) {
             star->move(static_cast<DOUBLE>(TIME_INTERVAL) / 1000.0);
 
             if (sub_wnd_rect.left > star->get_center_x()
-                    || star->get_center_x() > static_cast<INT64>(sub_wnd_rect.right) - 15){
+                    || star->get_center_x() > static_cast<INT64>(sub_wnd_rect.right) - 15) {
                 star->neg_velocity_x();
             }
             if (sub_wnd_rect.top > star->get_center_y()
-                    || star->get_center_y() > static_cast<INT64>(sub_wnd_rect.bottom) - 40){
+                    || star->get_center_y() > static_cast<INT64>(sub_wnd_rect.bottom) - 40) {
                 star->neg_velocity_y();
             }
         });
@@ -325,7 +325,7 @@ inline INT64 get_wnd_number(HWND hWnd) {
     tstring title;
     title.resize(15);
 
-    GetWindowText(hWnd, const_cast<TCHAR*>(title.c_str()), sizeof(title) / sizeof(TCHAR));
+    GetWindowText(hWnd, const_cast<TCHAR *>(title.c_str()), sizeof(title) / sizeof(TCHAR));
 
     return std::stoi(title.substr(5));
 }
