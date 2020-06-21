@@ -28,7 +28,7 @@ static HINSTANCE g_hInstance;
 static std::vector<std::unique_ptr<std::vector<std::unique_ptr<Star>>>> g_star_vecs;
 static std::vector<HWND> g_sub_hwnds_vec;
 
-static INT64 count = 0;
+static INT count = 0;
 
 LRESULT CALLBACK main_proc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK sub_proc(HWND, UINT, WPARAM, LPARAM);
@@ -44,36 +44,36 @@ INT APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, TCHAR *lpsz
 
     MSG msg;
 
-    WNDCLASS m_wnd_class;
+    WNDCLASS main_wnd_class;
     HWND m_hwnd;
 
-    m_wnd_class.style = CS_VREDRAW | CS_HREDRAW;
-    m_wnd_class.lpfnWndProc = main_proc;
-    m_wnd_class.cbClsExtra = 0;
-    m_wnd_class.cbWndExtra = 0;
-    m_wnd_class.hInstance = hInstance;
-    m_wnd_class.hIcon = LoadIcon(NULL, IDC_ICON);
-    m_wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-    m_wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
-    m_wnd_class.lpszMenuName = nullptr;
-    m_wnd_class.lpszClassName = M_CLASSNAME;
+    main_wnd_class.style = CS_VREDRAW | CS_HREDRAW;
+    main_wnd_class.lpfnWndProc = main_proc;
+    main_wnd_class.cbClsExtra = 0;
+    main_wnd_class.cbWndExtra = 0;
+    main_wnd_class.hInstance = hInstance;
+    main_wnd_class.hIcon = LoadIcon(NULL, IDC_ICON);
+    main_wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+    main_wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
+    main_wnd_class.lpszMenuName = nullptr;
+    main_wnd_class.lpszClassName = M_CLASSNAME;
 
-    RegisterClass(&m_wnd_class);
+    RegisterClass(&main_wnd_class);
 
-    WNDCLASS s_wnd_class;
+    WNDCLASS sub_wnd_class;
 
-    s_wnd_class.style = NULL;
-    s_wnd_class.lpfnWndProc = sub_proc;
-    s_wnd_class.cbClsExtra = 0;
-    s_wnd_class.cbWndExtra = 0;
-    s_wnd_class.hInstance = hInstance;
-    s_wnd_class.hIcon = LoadIcon(NULL, IDC_ICON);
-    s_wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-    s_wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
-    s_wnd_class.lpszMenuName = nullptr;
-    s_wnd_class.lpszClassName = S_CLASSNAME;
+    sub_wnd_class.style = NULL;
+    sub_wnd_class.lpfnWndProc = sub_proc;
+    sub_wnd_class.cbClsExtra = 0;
+    sub_wnd_class.cbWndExtra = 0;
+    sub_wnd_class.hInstance = hInstance;
+    sub_wnd_class.hIcon = LoadIcon(NULL, IDC_ICON);
+    sub_wnd_class.hCursor = LoadCursor(NULL, IDC_ARROW);
+    sub_wnd_class.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(WHITE_BRUSH));
+    sub_wnd_class.lpszMenuName = nullptr;
+    sub_wnd_class.lpszClassName = S_CLASSNAME;
 
-    RegisterClass(&s_wnd_class);
+    RegisterClass(&sub_wnd_class);
 
     m_hwnd = CreateWindow(
         M_CLASSNAME, _T("Stars"),
@@ -211,7 +211,7 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
         g_star_vecs.emplace_back(std::make_unique<std::vector<std::unique_ptr<Star>>>())
             ->reserve(20);
 
-        for (INT64 i = 0; i < 20; ++i) {
+        for (INT i = 0; i < 20; ++i) {
             g_star_vecs.back()->emplace_back(
                 std::make_unique<Star>(
                     RGB(std::rand() % 256, std::rand() % 256, std::rand() % 256),
@@ -251,7 +251,7 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 
         SetPolyFillMode(hDC, WINDING);
 
-        INT64 idx = get_wnd_number(hWnd) - 1;
+        INT idx = get_wnd_number(hWnd) - 1;
 
         std::for_each(
             g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
@@ -276,7 +276,7 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
     {
         KillTimer(hWnd, 1);
 
-        INT64 idx = get_wnd_number(hWnd) - 1;
+        INT idx = get_wnd_number(hWnd) - 1;
 
         g_star_vecs.erase(g_star_vecs.begin() + idx);
         g_sub_hwnds_vec.erase(g_sub_hwnds_vec.begin() + idx);
@@ -301,7 +301,7 @@ LRESULT sub_proc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam) {
 }
 
 void timer_proc(HWND hWnd, UINT nID, UINT_PTR nEl, DWORD time) {
-    INT64 idx = get_wnd_number(hWnd) - 1;
+    INT idx = get_wnd_number(hWnd) - 1;
 
     std::for_each(
         g_star_vecs[idx]->cbegin(), g_star_vecs[idx]->cend(),
